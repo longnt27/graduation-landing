@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#43070c" />
+  <meta name="description" content="Thiệp mời dự lễ tốt nghiệp của em Long — 27/09/2026." />
+  <title>Lễ tốt nghiệp của em Long · 27.09.2026</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/assets/app.css">
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <div class="brand">
+        <div class="brand-seal">L</div>
+        <div class="brand-copy">
+          <div class="brand-title">Lễ tốt nghiệp của em Long</div>
+          <div class="brand-date">27 · 09 · 2026</div>
+        </div>
+      </div>
+      <nav class="nav">
+        <a href="#details">Thông tin</a>
+        <a href="#rsvp">Xác nhận</a>
+        <a href="#guestbook">Lưu bút</a>
+      </nav>
+      <button class="btn btn-secondary" id="shareBtn" type="button">Chia sẻ</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="home">
+      <div class="container">
+        <div class="invitation-stage">
+          <img class="frame frame-tablet" src="/assets/frame-tablet.webp" alt="" aria-hidden="true">
+          <img class="frame frame-mobile" src="/assets/frame-mobile.webp" alt="" aria-hidden="true">
+
+          <div class="invitation-copy">
+            <div class="kicker">Trân trọng kính mời</div>
+            <h1 class="hero-title">Lễ Tốt Nghiệp</h1>
+            <div class="hero-name">của em Long</div>
+            <div class="rule"></div>
+            <p class="hero-desc">Một cột mốc rất đặc biệt sẽ trọn vẹn hơn nếu có sự hiện diện của những người em quý mến.</p>
+            <div class="hero-date">27 · 09 · 2026</div>
+            <div class="hero-meta" id="heroMeta">Chủ Nhật · Thời gian sẽ cập nhật · Địa điểm sẽ được cập nhật</div>
+            <div class="hero-actions">
+              <a class="btn btn-primary" href="#rsvp">Xác nhận tham dự</a>
+              <a class="btn btn-secondary" href="#guestbook">Viết lưu bút</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="countdown">
+      <div class="container">
+        <div class="section-head">
+          <div class="section-kicker">The day approaches</div>
+          <h2 class="section-title">Đếm ngược tới ngày tốt nghiệp</h2>
+          <img class="ornament" src="/assets/divider.webp" alt="" aria-hidden="true">
+          <p class="section-desc">Ngày 27/09 đang tới gần. Em Long rất mong được gặp mọi người trong ngày đáng nhớ này.</p>
+        </div>
+        <div class="countdown-grid">
+          <div class="timebox"><div class="num" id="days">00</div><div class="label">Ngày</div></div>
+          <div class="timebox"><div class="num" id="hours">00</div><div class="label">Giờ</div></div>
+          <div class="timebox"><div class="num" id="minutes">00</div><div class="label">Phút</div></div>
+          <div class="timebox"><div class="num" id="seconds">00</div><div class="label">Giây</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="details">
+      <div class="container">
+        <div class="section-head">
+          <div class="section-kicker">Event details</div>
+          <h2 class="section-title">Thông tin buổi lễ</h2>
+          <img class="ornament" src="/assets/divider.webp" alt="" aria-hidden="true">
+        </div>
+
+        <div class="info-grid">
+          <article class="paper">
+            <h3>Em Long kính mời</h3>
+            <p>Em Long xin phép được mời anh/chị/bạn bè và những người thân thương đến chung vui trong lễ tốt nghiệp của em. Sự hiện diện của mọi người là một phần thật đẹp của ngày đáng nhớ này.</p>
+            <div class="detail-list">
+              <div class="detail">
+                <div class="detail-label">Ngày tổ chức</div>
+                <div class="detail-value">Chủ Nhật, 27 tháng 9 năm 2026</div>
+              </div>
+              <div class="detail">
+                <div class="detail-label">Thời gian</div>
+                <div class="detail-value" id="detailTime">Thời gian sẽ cập nhật</div>
+              </div>
+              <div class="detail">
+                <div class="detail-label">Địa điểm</div>
+                <div class="detail-value" id="detailLocation">Địa điểm sẽ được cập nhật</div>
+              </div>
+              <div class="detail">
+                <div class="detail-label">Dress code</div>
+                <div class="detail-value">Đỏ · Đen · Kem / Semi-formal</div>
+              </div>
+            </div>
+            <div class="form-actions" style="margin-top:16px">
+              <a class="btn btn-primary" id="mapBtn" href="#" target="_blank" rel="noopener noreferrer" hidden>Xem bản đồ</a>
+            </div>
+          </article>
+
+          <article class="paper">
+            <h3>Lịch trình dự kiến</h3>
+            <p>Mọi người có thể tới sớm một chút để mình có thêm thời gian gặp nhau và chụp ảnh trước buổi lễ.</p>
+            <div class="timeline" id="timeline"></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="rsvp">
+      <div class="container">
+        <div class="section-head">
+          <div class="section-kicker">R.S.V.P.</div>
+          <h2 class="section-title">Xác nhận tham dự</h2>
+          <img class="ornament" src="/assets/divider.webp" alt="" aria-hidden="true">
+          <p class="section-desc">Cho em Long biết mọi người có thể tới không và dự kiến sẽ có mặt lúc mấy giờ nhé.</p>
+        </div>
+
+        <div class="forms-grid">
+          <div class="panel">
+            <h3 class="panel-title">Thông tin tham dự</h3>
+            <p class="panel-copy">Mỗi xác nhận sẽ được lưu kèm thời điểm gửi để em Long tiện chuẩn bị đón mọi người.</p>
+
+            <form id="rsvpForm" novalidate>
+              <div class="honeypot" aria-hidden="true">
+                <label for="rsvpWebsite">Website</label>
+                <input id="rsvpWebsite" name="website" autocomplete="off" tabindex="-1">
+              </div>
+
+              <div class="field-grid two">
+                <div class="field">
+                  <label for="guestName">Họ và tên *</label>
+                  <input id="guestName" name="guestName" maxlength="100" autocomplete="name" placeholder="Nguyễn Văn A" required>
+                </div>
+                <div class="field">
+                  <label for="guestRelation">Mối quan hệ</label>
+                  <select id="guestRelation" name="guestRelation">
+                    <option value="">Không cần chọn</option>
+                    <option>Bạn bè</option>
+                    <option>Anh/chị/em</option>
+                    <option>Người thân</option>
+                    <option>Thầy/cô</option>
+                    <option>Đồng nghiệp</option>
+                    <option>Khác</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="field-grid two">
+                <div class="field">
+                  <label for="attendance">Trạng thái *</label>
+                  <select id="attendance" name="attendance" required>
+                    <option value="">Chọn trạng thái</option>
+                    <option value="attending">Sẽ tham dự</option>
+                    <option value="maybe">Có thể tham dự</option>
+                    <option value="declined">Rất tiếc, không tham dự được</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="arrivalTime">Dự kiến có mặt lúc (nếu đã biết)</label>
+                  <input id="arrivalTime" name="arrivalTime" type="time">
+                </div>
+              </div>
+
+              <div class="field-grid two">
+                <div class="field">
+                  <label for="companions">Số người đi cùng</label>
+                  <input id="companions" name="companions" type="number" inputmode="numeric" min="0" max="10" step="1" value="0">
+                </div>
+                <div class="field">
+                  <label for="contact">Số điện thoại / liên hệ</label>
+                  <input id="contact" name="contact" maxlength="80" autocomplete="tel" placeholder="Để em Long tiện liên lạc">
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="rsvpNote">Lời nhắn</label>
+                <textarea id="rsvpNote" name="note" maxlength="600" placeholder="Ví dụ: Mình sẽ tới sớm để chụp ảnh cùng em nhé."></textarea>
+              </div>
+
+              <div class="form-actions">
+                <button class="btn btn-primary btn-block" type="submit" id="rsvpSubmit">Gửi xác nhận</button>
+              </div>
+              <div class="status" id="rsvpStatus" role="status" aria-live="polite"></div>
+            </form>
+          </div>
+
+          <div class="panel">
+            <h3 class="panel-title">Đã ghi nhận như thế nào?</h3>
+            <p class="panel-copy">Sau khi gửi thành công, trang sẽ xác nhận lại tên, trạng thái tham dự, giờ dự kiến có mặt và thời điểm phản hồi.</p>
+            <div class="message-feed" id="latestRsvp">
+              <div class="empty">Chưa có xác nhận nào được gửi từ thiết bị này.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="guestbook">
+      <div class="container">
+        <div class="section-head">
+          <div class="section-kicker">Guestbook</div>
+          <h2 class="section-title">Lưu bút cho em Long</h2>
+          <img class="ornament" src="/assets/divider.webp" alt="" aria-hidden="true">
+          <p class="section-desc">Để lại một lời chúc, một kỷ niệm, hoặc vài dòng em Long có thể đọc lại sau ngày tốt nghiệp.</p>
+        </div>
+
+        <div class="guestbook-grid">
+          <div class="panel">
+            <h3 class="panel-title">Viết vài dòng</h3>
+            <form id="guestbookForm" novalidate>
+              <div class="honeypot" aria-hidden="true">
+                <label for="guestbookWebsite">Website</label>
+                <input id="guestbookWebsite" name="website" autocomplete="off" tabindex="-1">
+              </div>
+
+              <div class="field-grid two">
+                <div class="field">
+                  <label for="messageName">Tên của bạn *</label>
+                  <input id="messageName" name="name" maxlength="100" placeholder="Tên của bạn" required>
+                </div>
+                <div class="field">
+                  <label for="messageTitle">Tiêu đề nhỏ</label>
+                  <input id="messageTitle" name="title" maxlength="120" placeholder="Chúc mừng em Long">
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="messageBody">Lời lưu bút *</label>
+                <textarea id="messageBody" name="message" maxlength="1200" placeholder="Viết đôi dòng cho em Long..." required></textarea>
+              </div>
+
+              <div class="form-actions">
+                <button class="btn btn-primary btn-block" type="submit" id="guestbookSubmit">Gửi lời chúc</button>
+              </div>
+              <div class="status" id="guestbookStatus" role="status" aria-live="polite"></div>
+            </form>
+          </div>
+
+          <div class="panel">
+            <h3 class="panel-title">Những lời nhắn gần đây</h3>
+            <p class="panel-copy">Các lời chúc mới nhất sẽ xuất hiện ở đây.</p>
+            <div class="message-feed" id="guestbookFeed">
+              <div class="empty">Đang tải lưu bút…</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>WITH LOVE · LONG'S GRADUATION · 27.09.2026</footer>
+
+  <div class="mobile-bar">
+    <a class="btn btn-primary" href="#rsvp">Xác nhận</a>
+    <a class="btn btn-secondary" href="#guestbook">Lưu bút</a>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="/assets/app.js" defer></script>
+</body>
+</html>
