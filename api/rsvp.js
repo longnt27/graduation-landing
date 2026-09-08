@@ -1,47 +1,72 @@
 import crypto from 'node:crypto';
 import { json, methodNotAllowed } from '../lib/http.js';
-import { readRecent, writeRecord } from '../lib/store.js';
 import { validateRsvp } from '../lib/validation.js';
 
-function csvCell(value) {
-  const text = String(value ?? '').replaceAll('"', '""');
-  return `"${text}"`;
+const ATTENDANCE_LABELS = {
+  attending: '✅ Sẽ tham dự',
+  maybe: '🤔 Có thể tham dự',
+  declined: '❌ Không tham dự được'
+};
+
+function formatVietnamTime(iso) {
+  return new Intl.DateTimeFormat('vi-VN', {
+    timeZone: 'Asia/Ho_Chi_Minh',
+    dateStyle: 'short',
+    timeStyle: 'medium'
+  }).format(new Date(iso));
 }
 
-function rsvpsToCsv(rows) {
-  const headers = ['id', 'guest_name', 'guest_relation', 'attendance', 'arrival_time', 'companions', 'contact', 'note', 'created_at'];
-  const lines = [headers.join(',')];
-  for (const row of rows) {
-    lines.push(headers.map(key => csvCell(row[key])).join(','));
+function clean(value, fallback = '—') {
+  const text = String(value ?? '').trim();
+  return text || fallback;
+}
+
+function buildTelegramMessage(row) {
+  return [
+    '🎓 RSVP MỚI — LỄ TỐT NGHIỆP EM LONG',
+    '',
+    `👤 Họ tên: ${clean(row.guest_name)}`,
+    `🤝 Mối quan hệ: ${clean(row.guest_relation)}`,
+    `📌 Trạng thái: ${ATTENDANCE_LABELS[row.attendance] || clean(row.attendance)}`,
+    `🕐 Dự kiến có mặt: ${clean(row.arrival_time, 'Chưa xác định')}`,
+    `👥 Đi cùng: ${Number(row.companions || 0)} người`,
+    `📞 Liên hệ: ${clean(row.contact)}`,
+    `💌 Lời nhắn: ${clean(row.note)}`,
+    '',
+    `🗓 Gửi lúc: ${formatVietnamTime(row.created_at)}`,
+    `🆔 ${row.id}`
+  ].join('\n');
+}
+
+async function sendTelegram(message) {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+
+  if (!token || !chatId) {
+    throw new Error('Telegram RSVP chưa được cấu hình.');
   }
-  return lines.join('\n');
+
+  const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chat_id: chatId,
+      text: message,
+      disable_web_page_preview: true
+    })
+  });
+
+  const payload = await response.json().catch(() => null);
+  if (!response.ok || !payload?.ok) {
+    const reason = payload?.description || `HTTP ${response.status}`;
+    throw new Error(`Telegram sendMessage failed: ${reason}`);
+  }
+
+  return payload.result;
 }
 
 export default async function handler(req, res) {
-  if (req.method === 'GET') {
-    const adminToken = process.env.ADMIN_TOKEN;
-    const auth = req.headers.authorization || '';
-    if (!adminToken || auth !== `Bearer ${adminToken}`) {
-      return json(res, 401, { error: 'Unauthorized' });
-    }
-
-    try {
-      const rows = await readRecent('rsvp', 1000);
-      if (req.query?.format === 'csv') {
-        res.statusCode = 200;
-        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-        res.setHeader('Content-Disposition', 'attachment; filename="long-graduation-rsvps.csv"');
-        res.setHeader('Cache-Control', 'no-store');
-        return res.end('\uFEFF' + rsvpsToCsv(rows));
-      }
-      return json(res, 200, { rsvps: rows });
-    } catch (err) {
-      console.error(err);
-      return json(res, 500, { error: 'Không thể đọc danh sách xác nhận.' });
-    }
-  }
-
-  if (req.method !== 'POST') return methodNotAllowed(res, ['GET', 'POST']);
+  if (req.method !== 'POST') return methodNotAllowed(res, ['POST']);
 
   try {
     const validated = validateRsvp(req.body || {});
@@ -60,10 +85,11 @@ export default async function handler(req, res) {
       created_at: new Date().toISOString()
     };
 
-    await writeRecord('rsvp', row.id, row);
+    await sendTelegram(buildTelegramMessage(row));
 
     return json(res, 201, {
       ok: true,
+      delivered: 'telegram',
       rsvp: {
         id: row.id,
         guest_name: row.guest_name,
@@ -78,7 +104,10 @@ export default async function handler(req, res) {
     if (err?.message?.startsWith('Vui lòng') || err?.message?.startsWith('Số người')) {
       return json(res, 400, { error: err.message });
     }
+
     console.error(err);
-    return json(res, 500, { error: 'Không thể lưu xác nhận lúc này.' });
+    return json(res, 502, {
+      error: 'Không thể gửi xác nhận tới em Long lúc này. Vui lòng thử lại sau.'
+    });
   }
 }
