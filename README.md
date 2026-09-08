@@ -1,43 +1,42 @@
 # Long Graduation Invitation
 
-Responsive graduation invitation for **27/09/2026**, with Telegram RSVP delivery and a public guestbook.
+Responsive graduation invitation for **27/09/2026**.
 
 ## Stack
 
 - Static HTML/CSS/JS frontend
 - Vercel Functions (`/api`)
-- Telegram Bot API for RSVP notifications
-- Vercel Private Blob for guestbook persistence
+- RSVP notifications delivered directly through Telegram Bot API
+- Vercel Private Blob only for guestbook persistence
 - GitHub Actions for CI
-- Vercel native Git integration for deployments
+- Vercel native Git integration for production deploys
 
 ## CI/CD
 
-`.github/workflows/ci.yml` runs on pull requests and every push to `main`. The Vercel project is connected directly to `longnt27/graduation-landing`, so every push to `main` triggers a production deployment automatically.
+- pull requests and pushes to `main` run CI
+- the Vercel project is connected directly to `longnt27/graduation-landing`
+- every push to `main` automatically creates a production deployment
 
-## RSVP → Telegram
+## RSVP -> Telegram
 
-`POST /api/rsvp` validates the form and sends the RSVP directly to Telegram. RSVP data is not stored in Vercel Blob and there is no admin inbox.
+`POST /api/rsvp` validates the form and calls Telegram `sendMessage`. The form only reports success after Telegram accepts the message.
 
-Add these **Production** environment variables in the Vercel project:
+Configure these Vercel environment variables for Production:
 
 ```text
-TELEGRAM_BOT_TOKEN=<your existing bot token>
-TELEGRAM_CHAT_ID=<the private chat/group/channel that should receive RSVPs>
+TELEGRAM_BOT_TOKEN
+TELEGRAM_CHAT_ID
 ```
 
-Never put the real bot token in the repository or client-side JavaScript.
+Never expose the bot token in client-side code or commit it to GitHub.
 
 ## Guestbook
 
-Guestbook messages remain persistent because they are shown publicly on the invitation page. Connect a **Private Vercel Blob** store to the project. The API uses the project runtime credentials automatically once the store is attached.
+The public guestbook still uses a **Private Vercel Blob** store because messages must persist and be readable back on the landing page.
 
-## API
-
-- `POST /api/rsvp` — validate RSVP and deliver it to Telegram
-- `GET /api/guestbook` — list public guestbook messages
-- `POST /api/guestbook` — save a guestbook message to private Blob storage
-- `GET /api/health` — storage health check for the guestbook backend
+- `GET /api/guestbook` — list guestbook messages
+- `POST /api/guestbook` — create a guestbook message
+- `GET /api/health` — check guestbook storage availability
 
 ## Event details
 
