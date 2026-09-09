@@ -31,6 +31,28 @@
       filter: none !important;
       image-rendering: auto !important;
     }
+
+    /* Keep each field label visually attached to its own control while giving
+       consecutive form rows enough breathing room. */
+    form > .field-grid + .field-grid,
+    form > .field-grid + .field,
+    form > .field + .field-grid,
+    form > .field + .field {
+      margin-top: 18px !important;
+    }
+    .field label {
+      line-height: 1.4;
+    }
+
+    @media (min-width: 640px) {
+      form > .field-grid + .field-grid,
+      form > .field-grid + .field,
+      form > .field + .field-grid,
+      form > .field + .field {
+        margin-top: 20px !important;
+      }
+    }
+
     @media (min-width: 1200px) {
       .frame-tablet {
         width: 100% !important;
