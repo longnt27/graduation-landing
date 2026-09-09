@@ -1,6 +1,5 @@
 import crypto from 'node:crypto';
 import { json, methodNotAllowed } from '../lib/http.js';
-import { enforceRateLimit } from '../lib/rate-limit.js';
 import { enforceJsonPost } from '../lib/security.js';
 import { validateRsvp } from '../lib/validation.js';
 
@@ -74,11 +73,6 @@ async function sendTelegram(message) {
 export default async function handler(req, res) {
   if (req.method !== 'POST') return methodNotAllowed(res, ['POST']);
   if (!enforceJsonPost(req, res, { maxBytes: 16_384 })) return;
-  if (!await enforceRateLimit(req, res, {
-    scope: 'rsvp-post',
-    limit: 10,
-    windowSeconds: 60
-  })) return;
 
   try {
     const validated = validateRsvp(req.body || {});
