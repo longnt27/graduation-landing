@@ -47,7 +47,7 @@
             <div class="rule"></div>
             <p class="hero-desc">Một cột mốc rất đặc biệt sẽ trọn vẹn hơn nếu có sự hiện diện của những người em quý mến.</p>
             <div class="hero-date">27 · 09 · 2026</div>
-            <div class="hero-meta" id="heroMeta">Chủ Nhật · Thời gian sẽ cập nhật · Hà Nội</div>
+            <div class="hero-meta" id="heroMeta">Chủ Nhật · 08:00 · Toà B1, Đại học Bách khoa Hà Nội</div>
             <div class="hero-actions">
               <a class="btn btn-primary" href="#rsvp">Xác nhận tham dự</a>
               <a class="btn btn-secondary" href="#guestbook">Viết lưu bút</a>
@@ -93,11 +93,11 @@
               </div>
               <div class="detail">
                 <div class="detail-label">Thời gian</div>
-                <div class="detail-value" id="detailTime">Thời gian sẽ cập nhật</div>
+                <div class="detail-value" id="detailTime">08:00</div>
               </div>
               <div class="detail">
                 <div class="detail-label">Địa điểm</div>
-                <div class="detail-value" id="detailLocation">21°00′17.8″N · 105°50′46.2″E</div>
+                <div class="detail-value" id="detailLocation">Toà B1, Đại học Bách khoa Hà Nội</div>
               </div>
               <div class="detail">
                 <div class="detail-label">Dress code</div>
@@ -151,7 +151,7 @@
                 <div class="field">
                   <label for="guestRelation">Mối quan hệ</label>
                   <select id="guestRelation" name="guestRelation">
-                    <option value="">Không cần chọn</option>
+                    <option value="" selected hidden>Không cần chọn</option>
                     <option>Bạn bè</option>
                     <option>Anh/chị/em</option>
                     <option>Người thân</option>
@@ -166,7 +166,7 @@
                 <div class="field">
                   <label for="attendance">Trạng thái *</label>
                   <select id="attendance" name="attendance" required>
-                    <option value="">Chọn trạng thái</option>
+                    <option value="" selected disabled hidden>Chọn trạng thái</option>
                     <option value="attending">Sẽ tham dự</option>
                     <option value="maybe">Có thể tham dự</option>
                     <option value="declined">Rất tiếc, không tham dự được</option>
@@ -272,7 +272,7 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="/assets/custom-ui.js?v=custom-select-map-mobile-20260909" defer></script>
-<script src="/assets/app.js?v=custom-select-map-mobile-20260909" defer></script>
+<script src="/assets/custom-ui.js?v=event-select-v2-20260909" defer></script>
+<script src="/assets/app.js?v=event-select-v2-20260909" defer></script>
 </body>
 </html>
