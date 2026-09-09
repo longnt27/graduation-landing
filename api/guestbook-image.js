@@ -1,4 +1,5 @@
 import { methodNotAllowed } from '../lib/http.js';
+import { enforceRateLimit } from '../lib/rate-limit.js';
 import { readPrivateBlob } from '../lib/store.js';
 
 const SAFE_IMAGE_PATH = /^guestbook-images\/[A-Za-z0-9._-]+\.(?:jpg|png|webp)$/;
@@ -11,6 +12,11 @@ function contentTypeFromPath(pathname) {
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') return methodNotAllowed(res, ['GET']);
+  if (!await enforceRateLimit(req, res, {
+    scope: 'guestbook-image-get',
+    limit: 240,
+    windowSeconds: 60
+  })) return;
 
   try {
     const url = new URL(req.url, 'http://localhost');
