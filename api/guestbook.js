@@ -1,5 +1,7 @@
 import crypto from 'node:crypto';
 import { json, methodNotAllowed } from '../lib/http.js';
+import { decodeGuestbookImage } from '../lib/guestbook-image.js';
+import { enforceJsonPost } from '../lib/security.js';
 import { readRecent, writePrivateBlob, writeRecord } from '../lib/store.js';
 import { validateGuestbook } from '../lib/validation.js';
 
@@ -18,27 +20,10 @@ function publicMessage(row) {
   };
 }
 
-function decodeImage(dataUrl) {
-  if (!dataUrl) return null;
-  const match = /^data:image\/(jpeg|png|webp);base64,(.+)$/i.exec(dataUrl);
-  if (!match) throw new Error('Ảnh đính kèm không hợp lệ.');
-
-  const subtype = match[1].toLowerCase();
-  const extension = subtype === 'jpeg' ? 'jpg' : subtype;
-  const contentType = subtype === 'jpeg' ? 'image/jpeg' : `image/${subtype}`;
-  const buffer = Buffer.from(match[2], 'base64');
-
-  if (!buffer.length || buffer.length > 2_000_000) {
-    throw new Error('Ảnh đính kèm quá lớn.');
-  }
-
-  return { buffer, extension, contentType };
-}
-
 export default async function handler(req, res) {
   if (req.method === 'GET') {
     try {
-      const rows = await readRecent('guestbook', 80);
+      const rows = await readRecent('guestbook', 40);
       const messages = rows
         .filter(row => row.approved !== false)
         .map(publicMessage);
@@ -50,6 +35,7 @@ export default async function handler(req, res) {
   }
 
   if (req.method !== 'POST') return methodNotAllowed(res, ['GET', 'POST']);
+  if (!enforceJsonPost(req, res, { maxBytes: 3_100_000 })) return;
 
   try {
     const validated = validateGuestbook(req.body || {});
@@ -61,7 +47,7 @@ export default async function handler(req, res) {
     let imagePath = null;
 
     if (d.image) {
-      const image = decodeImage(d.image);
+      const image = decodeGuestbookImage(d.image);
       const safeTimestamp = createdAt.replaceAll(':', '-');
       imagePath = `guestbook-images/${safeTimestamp}-${id}.${image.extension}`;
       await writePrivateBlob(imagePath, image.buffer, image.contentType);
@@ -83,7 +69,9 @@ export default async function handler(req, res) {
     if (
       err?.message?.startsWith('Vui lòng') ||
       err?.message?.startsWith('Lời lưu bút') ||
-      err?.message?.startsWith('Ảnh đính kèm')
+      err?.message?.startsWith('Ảnh') ||
+      err?.message?.startsWith('Không đọc được') ||
+      err?.message?.startsWith('Kích thước ảnh')
     ) {
       return json(res, 400, { error: err.message });
     }
