@@ -6,26 +6,43 @@
 
   const style = document.createElement('style');
   style.textContent = `
-    /* On phones and small tablets the old section rhythm left ~60px between the
-       invitation card and the countdown while horizontal gutters were ~16-18px.
-       Tighten only that vertical rhythm; desktop composition stays untouched. */
+    /* Keep the invitation close to the next section on phones/tablets. Desktop
+       spacing is intentionally untouched. */
     @media (max-width: 639px) {
       .hero {
-        padding-top: 10px !important;
-        padding-bottom: 14px !important;
+        padding-top: 5px !important;
+        padding-bottom: 7px !important;
       }
       #countdown {
-        padding-top: 8px !important;
+        padding-top: 4px !important;
+      }
+
+      /* Keep Google Maps embedded on phones, just make it compact enough that it
+         does not dominate the viewport. This intentionally overrides the older
+         mobile rule in custom-ui.js that hid the iframe completely. */
+      .map-embed-wrap {
+        display: block !important;
+        width: 100% !important;
+        height: clamp(160px, 46vw, 190px) !important;
+        min-height: 0 !important;
+        aspect-ratio: auto !important;
+      }
+      .map-embed {
+        display: block !important;
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        border: 0 !important;
       }
     }
 
     @media (min-width: 640px) and (max-width: 899px) {
       .hero {
-        padding-top: 16px !important;
-        padding-bottom: 20px !important;
+        padding-top: 8px !important;
+        padding-bottom: 10px !important;
       }
       #countdown {
-        padding-top: 10px !important;
+        padding-top: 5px !important;
       }
     }
   `;
