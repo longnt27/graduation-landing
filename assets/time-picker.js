@@ -4,10 +4,13 @@
   input.dataset.wheelTimeReady = 'true';
 
   const ITEM_HEIGHT = 44;
-  const DEFAULT_TIME = '08:00';
-  const hours = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
-  const minutes = ['00', '15', '30', '45'];
+  const DEFAULT_TIME = '09:00';
+  const HOURS = ['07', '08', '09', '10', '11', '12'];
+  const NORMAL_MINUTES = ['00', '15', '30', '45'];
 
+  input.min = '07:00';
+  input.max = '12:00';
+  input.step = '900';
   input.classList.add('native-time-proxy');
 
   const root = document.createElement('div');
@@ -21,10 +24,7 @@
   trigger.setAttribute('aria-haspopup', 'dialog');
   trigger.setAttribute('aria-expanded', 'false');
   trigger.textContent = 'Chọn giờ';
-
-  const backdrop = document.createElement('div');
-  backdrop.className = 'wheel-time-backdrop';
-  backdrop.hidden = true;
+  root.appendChild(trigger);
 
   const panel = document.createElement('div');
   panel.className = 'wheel-time-panel';
@@ -32,7 +32,6 @@
   panel.setAttribute('role', 'dialog');
   panel.setAttribute('aria-modal', 'false');
   panel.setAttribute('aria-label', 'Chọn giờ dự kiến có mặt');
-
   panel.innerHTML = `
     <div class="wheel-time-head">
       <div>
@@ -52,22 +51,27 @@
     </div>
     <div class="wheel-time-footer">
       <button class="wheel-time-clear" type="button">Bỏ chọn</button>
-      <span>Mỗi nấc 15 phút</span>
     </div>
   `;
-
-  root.append(trigger, panel);
-  document.body.appendChild(backdrop);
+  document.body.appendChild(panel);
 
   const hourWheel = panel.querySelector('[data-wheel="hour"]');
   const minuteWheel = panel.querySelector('[data-wheel="minute"]');
   const done = panel.querySelector('.wheel-time-done');
   const clear = panel.querySelector('.wheel-time-clear');
-  let draftHour = '08';
+
+  let draftHour = '09';
   let draftMinute = '00';
+  let minuteValues = [...NORMAL_MINUTES];
   let scrollTimer = null;
 
+  function valuesFor(container) {
+    return container === hourWheel ? HOURS : minuteValues;
+  }
+
   function buildWheel(container, values) {
+    container.replaceChildren();
+
     const topSpacer = document.createElement('div');
     topSpacer.className = 'wheel-time-spacer';
     container.appendChild(topSpacer);
@@ -80,22 +84,13 @@
       item.setAttribute('role', 'option');
       item.setAttribute('aria-selected', 'false');
       item.textContent = value;
-      item.addEventListener('click', () => {
-        scrollToValue(container, value, true);
-      });
+      item.addEventListener('click', () => scrollToValue(container, value, true));
       container.appendChild(item);
     });
 
     const bottomSpacer = document.createElement('div');
     bottomSpacer.className = 'wheel-time-spacer';
     container.appendChild(bottomSpacer);
-  }
-
-  buildWheel(hourWheel, hours);
-  buildWheel(minuteWheel, minutes);
-
-  function valuesFor(container) {
-    return container === hourWheel ? hours : minutes;
   }
 
   function nearestValue(container) {
@@ -112,19 +107,45 @@
     });
   }
 
+  function scrollToValue(container, value, smooth = false) {
+    const values = valuesFor(container);
+    const index = Math.max(0, values.indexOf(value));
+    const resolved = values[index];
+    container.scrollTo({ top: index * ITEM_HEIGHT, behavior: smooth ? 'smooth' : 'auto' });
+    if (container === hourWheel) draftHour = resolved;
+    else draftMinute = resolved;
+    paintSelection(container, resolved);
+  }
+
+  function refreshMinuteWheel() {
+    const nextValues = draftHour === '12' ? ['00'] : [...NORMAL_MINUTES];
+    const changed = nextValues.length !== minuteValues.length || nextValues.some((value, index) => value !== minuteValues[index]);
+    if (!changed) return;
+
+    minuteValues = nextValues;
+    if (!minuteValues.includes(draftMinute)) draftMinute = '00';
+    buildWheel(minuteWheel, minuteValues);
+    requestAnimationFrame(() => scrollToValue(minuteWheel, draftMinute, false));
+  }
+
   function commitDraftFromScroll(container) {
     const value = nearestValue(container);
-    if (container === hourWheel) draftHour = value;
-    else draftMinute = value;
-    paintSelection(container, value);
+    if (container === hourWheel) {
+      const changedHour = draftHour !== value;
+      draftHour = value;
+      paintSelection(container, value);
+      if (changedHour) refreshMinuteWheel();
+    } else {
+      draftMinute = value;
+      paintSelection(container, value);
+    }
   }
 
   function snap(container) {
-    const value = nearestValue(container);
-    scrollToValue(container, value, true);
+    scrollToValue(container, nearestValue(container), true);
   }
 
-  [hourWheel, minuteWheel].forEach(container => {
+  function wireWheel(container) {
     container.addEventListener('scroll', () => {
       commitDraftFromScroll(container);
       clearTimeout(scrollTimer);
@@ -143,26 +164,35 @@
       event.preventDefault();
       scrollToValue(container, values[next], true);
     });
-  });
-
-  function scrollToValue(container, value, smooth = false) {
-    const values = valuesFor(container);
-    const index = Math.max(0, values.indexOf(value));
-    container.scrollTo({ top: index * ITEM_HEIGHT, behavior: smooth ? 'smooth' : 'auto' });
-    if (container === hourWheel) draftHour = values[index];
-    else draftMinute = values[index];
-    paintSelection(container, values[index]);
   }
+
+  buildWheel(hourWheel, HOURS);
+  buildWheel(minuteWheel, minuteValues);
+  wireWheel(hourWheel);
+  wireWheel(minuteWheel);
 
   function parseTime(value) {
     const match = /^(\d{2}):(\d{2})$/.exec(value || '');
     if (!match) return DEFAULT_TIME.split(':');
-    const hour = hours.includes(match[1]) ? match[1] : '08';
+
+    let hour = Number(match[1]);
+    hour = Math.max(7, Math.min(12, hour));
+    const hourText = String(hour).padStart(2, '0');
+
+    if (hour === 12) return ['12', '00'];
+
     const rawMinute = Number(match[2]);
-    const snappedMinute = minutes.reduce((best, candidate) =>
+    const minute = NORMAL_MINUTES.reduce((best, candidate) =>
       Math.abs(Number(candidate) - rawMinute) < Math.abs(Number(best) - rawMinute) ? candidate : best
     , '00');
-    return [hour, snappedMinute];
+    return [hourText, minute];
+  }
+
+  function setValue(value) {
+    input.value = value;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+    syncTrigger();
   }
 
   function syncTrigger() {
@@ -178,15 +208,36 @@
     if (input.disabled && root.classList.contains('is-open')) close();
   }
 
+  function positionPanel() {
+    if (panel.hidden || window.matchMedia('(max-width: 639px)').matches) {
+      panel.style.left = '';
+      panel.style.top = '';
+      panel.style.width = '';
+      return;
+    }
+
+    const rect = trigger.getBoundingClientRect();
+    const width = Math.min(420, Math.max(320, rect.width));
+    let left = rect.left;
+    if (left + width > window.innerWidth - 12) left = window.innerWidth - width - 12;
+    left = Math.max(12, left);
+
+    panel.style.width = `${width}px`;
+    panel.style.left = `${left}px`;
+    panel.style.top = `${rect.bottom + 8}px`;
+  }
+
   function open() {
     if (input.disabled) return;
-    const [hour, minute] = parseTime(input.value);
-    draftHour = hour;
-    draftMinute = minute;
+
+    [draftHour, draftMinute] = parseTime(input.value);
+    minuteValues = draftHour === '12' ? ['00'] : [...NORMAL_MINUTES];
+    buildWheel(minuteWheel, minuteValues);
+
     root.classList.add('is-open');
     panel.hidden = false;
-    backdrop.hidden = false;
     trigger.setAttribute('aria-expanded', 'true');
+    positionPanel();
 
     requestAnimationFrame(() => {
       scrollToValue(hourWheel, draftHour, false);
@@ -198,28 +249,35 @@
   function close({ focusTrigger = false } = {}) {
     root.classList.remove('is-open');
     panel.hidden = true;
-    backdrop.hidden = true;
     trigger.setAttribute('aria-expanded', 'false');
     if (focusTrigger) trigger.focus();
   }
 
-  function setValue(value) {
-    input.value = value;
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-    input.dispatchEvent(new Event('change', { bubbles: true }));
-    syncTrigger();
+  function commitAndClose({ focusTrigger = false } = {}) {
+    if (!root.classList.contains('is-open')) return;
+    commitDraftFromScroll(hourWheel);
+    commitDraftFromScroll(minuteWheel);
+    if (draftHour === '12') draftMinute = '00';
+    setValue(`${draftHour}:${draftMinute}`);
+    close({ focusTrigger });
   }
 
-  trigger.addEventListener('click', () => root.classList.contains('is-open') ? close() : open());
-  done.addEventListener('click', () => {
-    setValue(`${draftHour}:${draftMinute}`);
-    close({ focusTrigger: true });
+  trigger.addEventListener('click', () => {
+    if (root.classList.contains('is-open')) commitAndClose();
+    else open();
   });
+
+  done.addEventListener('click', () => commitAndClose({ focusTrigger: true }));
   clear.addEventListener('click', () => {
     setValue('');
     close({ focusTrigger: true });
   });
-  backdrop.addEventListener('click', () => close({ focusTrigger: true }));
+
+  document.addEventListener('pointerdown', event => {
+    if (!root.classList.contains('is-open')) return;
+    if (root.contains(event.target) || panel.contains(event.target)) return;
+    commitAndClose();
+  }, true);
 
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape' && root.classList.contains('is-open')) close({ focusTrigger: true });
@@ -228,15 +286,21 @@
   const label = document.querySelector('label[for="arrivalTime"]');
   label?.addEventListener('click', event => {
     event.preventDefault();
-    trigger.focus();
+    if (!root.classList.contains('is-open')) open();
   });
 
   input.addEventListener('change', syncTrigger);
-  input.form?.addEventListener('reset', () => setTimeout(syncTrigger, 0));
+  input.form?.addEventListener('reset', () => setTimeout(() => {
+    close();
+    syncTrigger();
+  }, 0));
   document.querySelector('#attendance')?.addEventListener('change', () => setTimeout(syncTrigger, 0));
 
   const disabledObserver = new MutationObserver(syncTrigger);
   disabledObserver.observe(input, { attributes: true, attributeFilter: ['disabled'] });
+
+  window.addEventListener('resize', positionPanel);
+  window.addEventListener('scroll', positionPanel, { passive: true });
 
   const style = document.createElement('style');
   style.textContent = `
@@ -293,29 +357,17 @@
       border-color: rgba(233,207,147,.48);
       box-shadow: 0 0 0 3px rgba(233,207,147,.08);
     }
-    .wheel-time-trigger:disabled {
-      opacity: .42;
-      cursor: not-allowed;
-    }
-    .wheel-time-backdrop[hidden], .wheel-time-panel[hidden] { display: none !important; }
-    .wheel-time-backdrop {
-      position: fixed;
-      inset: 0;
-      z-index: 119;
-      background: rgba(20,0,4,.28);
-      backdrop-filter: blur(1px);
-    }
+    .wheel-time-trigger:disabled { opacity: .42; cursor: not-allowed; }
+    .wheel-time-panel[hidden] { display: none !important; }
     .wheel-time-panel {
-      position: absolute;
-      z-index: 120;
-      left: 0;
-      right: 0;
-      top: calc(100% + 8px);
+      position: fixed;
+      z-index: 1000;
       padding: 16px;
       border-radius: 18px;
       border: 1px solid rgba(233,207,147,.24);
       background: linear-gradient(180deg,#3b070d 0%,#2a0408 100%);
       box-shadow: 0 22px 60px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.035);
+      pointer-events: auto;
     }
     .wheel-time-head {
       display: flex;
@@ -402,7 +454,7 @@
     .wheel-time-column::-webkit-scrollbar { display: none; }
     .wheel-time-column[data-wheel="hour"] { grid-column: 1; }
     .wheel-time-column[data-wheel="minute"] { grid-column: 3; }
-    .wheel-time-spacer { height: 88px; flex: 0 0 88px; }
+    .wheel-time-spacer { height: 88px; }
     .wheel-time-item {
       display: block;
       width: 100%;
@@ -439,28 +491,21 @@
     }
     .wheel-time-footer {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
+      justify-content: flex-start;
       padding-top: 8px;
-      color: rgba(255,239,219,.45);
-      font-size: 10px;
     }
     .wheel-time-clear { color: rgba(255,239,219,.72); font-size: 11px; }
 
     @media (max-width: 639px) {
-      .wheel-time-backdrop { background: rgba(15,0,3,.55); backdrop-filter: blur(3px); }
       .wheel-time-panel {
-        position: fixed;
-        left: 10px;
-        right: 10px;
-        top: auto;
+        left: 10px !important;
+        right: 10px !important;
+        top: auto !important;
         bottom: calc(76px + env(safe-area-inset-bottom));
+        width: auto !important;
         border-radius: 22px;
         padding: 17px 16px 14px;
       }
-      .wheel-time-wheels { height: 220px; }
-      .wheel-time-column { height: 220px; }
     }
   `;
   document.head.appendChild(style);
