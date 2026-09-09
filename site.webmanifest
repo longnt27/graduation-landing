@@ -1,0 +1,16 @@
+{
+  "name": "Lễ tốt nghiệp của em Long",
+  "short_name": "Tốt nghiệp Long",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#43070c",
+  "theme_color": "#43070c",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
