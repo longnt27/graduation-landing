@@ -18,6 +18,16 @@ test('reject invalid companions', () => {
   assert.throws(() => validateRsvp({ guestName:'Nguyễn Văn A', attendance:'attending', arrivalTime:'08:00', companions:'99' }));
 });
 
+test('arrival time must be between 07:00 and 12:00', () => {
+  assert.throws(() => validateRsvp({ guestName:'Nguyễn Văn A', attendance:'attending', arrivalTime:'06:45', companions:'0' }));
+  assert.throws(() => validateRsvp({ guestName:'Nguyễn Văn A', attendance:'attending', arrivalTime:'12:15', companions:'0' }));
+  assert.equal(validateRsvp({ guestName:'Nguyễn Văn A', attendance:'attending', arrivalTime:'12:00', companions:'0' }).data.arrivalTime, '12:00');
+});
+
+test('arrival time uses 15 minute increments', () => {
+  assert.throws(() => validateRsvp({ guestName:'Nguyễn Văn A', attendance:'attending', arrivalTime:'09:10', companions:'0' }));
+});
+
 test('valid named guestbook message', () => {
   const r = validateGuestbook({ name:'Hương', message:'Chúc mừng em Long!' });
   assert.equal(r.data.name, 'Hương');
