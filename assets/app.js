@@ -1,3 +1,5 @@
+import('/assets/fullres-loader.js?v=1').catch(() => {});
+
 const CONFIG = {
     eventDate: '2026-09-27T00:00:00+07:00',
     eventDay: 'Chủ Nhật',
