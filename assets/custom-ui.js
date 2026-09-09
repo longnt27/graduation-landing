@@ -1,5 +1,51 @@
 (() => {
   const SELECTOR = '.field select';
+  const EVENT = {
+    dateTime: '2026-09-27T08:00:00+07:00',
+    time: '08:00',
+    location: 'Toà B1, Đại học Bách khoa Hà Nội'
+  };
+
+  function applyEventDetails() {
+    const heroMeta = document.querySelector('#heroMeta');
+    const detailTime = document.querySelector('#detailTime');
+    const detailLocation = document.querySelector('#detailLocation');
+    const expectedMeta = `Chủ Nhật · ${EVENT.time} · ${EVENT.location}`;
+
+    if (heroMeta && heroMeta.textContent !== expectedMeta) heroMeta.textContent = expectedMeta;
+    if (detailTime && detailTime.textContent !== EVENT.time) detailTime.textContent = EVENT.time;
+    if (detailLocation && detailLocation.textContent !== EVENT.location) detailLocation.textContent = EVENT.location;
+  }
+
+  function applyCountdown() {
+    const target = new Date(EVENT.dateTime).getTime();
+    const safe = Math.max(0, target - Date.now());
+    const values = [
+      Math.floor(safe / 86400000),
+      Math.floor((safe % 86400000) / 3600000),
+      Math.floor((safe % 3600000) / 60000),
+      Math.floor((safe % 60000) / 1000)
+    ];
+    ['days', 'hours', 'minutes', 'seconds'].forEach((id, index) => {
+      const node = document.getElementById(id);
+      const value = String(values[index]).padStart(2, '0');
+      if (node && node.textContent !== value) node.textContent = value;
+    });
+  }
+
+  applyEventDetails();
+  applyCountdown();
+
+  // app-core.js still owns the general page behavior. Keep the confirmed event
+  // details authoritative even if an older cached CONFIG writes placeholders.
+  const eventNodes = ['heroMeta', 'detailTime', 'detailLocation', 'days', 'hours', 'minutes', 'seconds']
+    .map(id => document.getElementById(id))
+    .filter(Boolean);
+  const eventObserver = new MutationObserver(() => {
+    applyEventDetails();
+    applyCountdown();
+  });
+  eventNodes.forEach(node => eventObserver.observe(node, { childList: true, characterData: true, subtree: true }));
 
   function closeAll(except = null) {
     document.querySelectorAll('.custom-select.is-open').forEach(root => {
