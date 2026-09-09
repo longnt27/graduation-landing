@@ -41,7 +41,12 @@
     menu.hidden = true;
     trigger.setAttribute('aria-controls', menu.id);
 
+    // Empty-value options are placeholders, not real choices. Keep them in the
+    // native select so reset/FormData semantics stay intact, but never render
+    // them inside the custom listbox.
     const optionButtons = Array.from(select.options).map((option, index) => {
+      if (!option.value) return null;
+
       const item = document.createElement('button');
       item.type = 'button';
       item.className = 'custom-select-option';
@@ -53,6 +58,9 @@
       menu.appendChild(item);
       return item;
     });
+    const selectableIndices = optionButtons
+      .map((item, index) => item && !item.disabled ? index : null)
+      .filter(index => index !== null);
 
     root.append(trigger, menu);
 
@@ -63,20 +71,31 @@
       trigger.classList.remove('is-invalid');
       trigger.removeAttribute('aria-invalid');
       optionButtons.forEach((item, index) => {
-        item.setAttribute('aria-selected', index === select.selectedIndex ? 'true' : 'false');
+        if (item) item.setAttribute('aria-selected', index === select.selectedIndex ? 'true' : 'false');
       });
     }
 
-    function focusOption(index) {
-      if (!optionButtons.length) return;
-      let next = Math.max(0, Math.min(index, optionButtons.length - 1));
-      while (optionButtons[next]?.disabled && next < optionButtons.length - 1) next += 1;
-      while (optionButtons[next]?.disabled && next > 0) next -= 1;
+    function resolveFocusableIndex(index, direction = 1) {
+      if (!selectableIndices.length) return -1;
+      if (selectableIndices.includes(index)) return index;
+
+      if (direction < 0) {
+        const previous = [...selectableIndices].reverse().find(candidate => candidate <= index);
+        return previous ?? selectableIndices[selectableIndices.length - 1];
+      }
+
+      const next = selectableIndices.find(candidate => candidate >= index);
+      return next ?? selectableIndices[0];
+    }
+
+    function focusOption(index, direction = 1) {
+      const next = resolveFocusableIndex(index, direction);
+      if (next < 0) return;
       optionButtons[next]?.focus({ preventScroll: true });
       optionButtons[next]?.scrollIntoView({ block: 'nearest' });
     }
 
-    function open(preferredIndex = select.selectedIndex) {
+    function open(preferredIndex = select.selectedIndex, direction = 1) {
       closeAll(root);
       root.classList.add('is-open');
       menu.hidden = false;
@@ -88,7 +107,7 @@
         const spaceBelow = window.innerHeight - rect.bottom - 12;
         const spaceAbove = rect.top - 12;
         root.classList.toggle('open-up', spaceBelow < Math.min(menuHeight, 220) && spaceAbove > spaceBelow);
-        focusOption(preferredIndex >= 0 ? preferredIndex : 0);
+        focusOption(preferredIndex, direction);
       });
     }
 
@@ -101,7 +120,7 @@
 
     function choose(index) {
       const option = select.options[index];
-      if (!option || option.disabled) return;
+      if (!option || option.disabled || !option.value) return;
       select.selectedIndex = index;
       select.dispatchEvent(new Event('change', { bubbles: true }));
       sync();
@@ -110,20 +129,20 @@
 
     trigger.addEventListener('click', () => {
       if (root.classList.contains('is-open')) close();
-      else open();
+      else open(select.selectedIndex || selectableIndices[0], 1);
     });
 
     trigger.addEventListener('keydown', event => {
       if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
         event.preventDefault();
         const delta = event.key === 'ArrowDown' ? 1 : -1;
-        open(Math.max(0, select.selectedIndex + delta));
+        open(select.selectedIndex + delta, delta);
       } else if (event.key === 'Home') {
         event.preventDefault();
-        open(0);
+        open(selectableIndices[0], 1);
       } else if (event.key === 'End') {
         event.preventDefault();
-        open(optionButtons.length - 1);
+        open(selectableIndices[selectableIndices.length - 1], -1);
       } else if (event.key === 'Escape') {
         close();
       }
@@ -136,13 +155,13 @@
       if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
         event.preventDefault();
         const delta = event.key === 'ArrowDown' ? 1 : -1;
-        focusOption(currentIndex + delta);
+        focusOption(currentIndex + delta, delta);
       } else if (event.key === 'Home') {
         event.preventDefault();
-        focusOption(0);
+        focusOption(selectableIndices[0], 1);
       } else if (event.key === 'End') {
         event.preventDefault();
-        focusOption(optionButtons.length - 1);
+        focusOption(selectableIndices[selectableIndices.length - 1], -1);
       } else if (event.key === 'Escape') {
         event.preventDefault();
         close({ focusTrigger: true });
@@ -218,8 +237,8 @@
       width: 100%;
       min-height: 49px;
       border-radius: 14px;
-      border: 1px solid rgba(233,207,147,.20);
-      background: #4a0911;
+      border: 1px solid rgba(233,207,147,.17);
+      background: rgba(255,250,240,.085);
       color: #fff8ef;
       padding: 14px 46px 14px 15px;
       text-align: left;
@@ -247,17 +266,17 @@
       transform: translateY(-25%) rotate(225deg);
     }
     .custom-select-trigger:hover {
-      background: #560b14;
-      border-color: rgba(233,207,147,.34);
+      background: rgba(255,250,240,.105);
+      border-color: rgba(233,207,147,.30);
     }
     .custom-select-trigger:focus-visible,
     .custom-select.is-open .custom-select-trigger {
-      background: #5d0c15;
-      border-color: rgba(233,207,147,.62);
-      box-shadow: 0 0 0 3px rgba(233,207,147,.10);
+      background: rgba(255,250,240,.12);
+      border-color: rgba(233,207,147,.48);
+      box-shadow: 0 0 0 3px rgba(233,207,147,.08);
     }
     .custom-select-trigger.is-placeholder {
-      color: #d1bbae;
+      color: rgba(255,239,219,.55);
     }
     .custom-select-trigger.is-invalid {
       border-color: rgba(255,130,145,.82) !important;
