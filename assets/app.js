@@ -1,7 +1,7 @@
 // Load the original full-resolution generated artwork. These files are intentionally
 // not committed by ChatGPT because the GitHub connector truncates large binary uploads.
 (() => {
-  const VERSION = 'original-fullres-v1';
+  const VERSION = 'original-fullres-v2';
   const sources = {
     tablet: `/assets/frame-tablet-original.png?v=${VERSION}`,
     mobile: `/assets/frame-mobile-original.png?v=${VERSION}`,
@@ -15,6 +15,34 @@
   if (tablet) tablet.src = sources.tablet;
   if (mobile) mobile.src = sources.mobile;
   ornaments.forEach(img => { img.src = sources.divider; });
+
+  // Remove the tentative schedule card entirely; only confirmed event details remain.
+  const detailsGrid = document.querySelector('#details .info-grid');
+  const scheduleCard = detailsGrid?.querySelector('.paper:nth-child(2)');
+  if (scheduleCard) scheduleCard.remove();
+
+  // Guestbook may be anonymous. Add one optional image input without making the
+  // base HTML dependent on large binary assets or another framework.
+  const guestbookForm = document.querySelector('#guestbookForm');
+  const guestbookName = document.querySelector('#messageName');
+  const guestbookNameLabel = document.querySelector('label[for="messageName"]');
+  if (guestbookName) {
+    guestbookName.required = false;
+    guestbookName.placeholder = 'Để trống nếu muốn ẩn danh';
+  }
+  if (guestbookNameLabel) guestbookNameLabel.textContent = 'Tên của bạn (không bắt buộc)';
+
+  if (guestbookForm && !document.querySelector('#messageImage')) {
+    const actions = guestbookForm.querySelector('.form-actions');
+    const imageField = document.createElement('div');
+    imageField.className = 'field guestbook-image-field';
+    imageField.innerHTML = `
+      <label for="messageImage">Ảnh kèm theo (không bắt buộc)</label>
+      <input id="messageImage" name="image" type="file" accept="image/jpeg,image/png,image/webp">
+      <div class="helper">Có thể gửi 1 ảnh. Trang sẽ tự tối ưu ảnh trước khi tải lên.</div>
+    `;
+    actions?.before(imageField);
+  }
 
   const style = document.createElement('style');
   style.textContent = `
@@ -30,6 +58,11 @@
       opacity: 1 !important;
       filter: none !important;
       image-rendering: auto !important;
+    }
+
+    #details .info-grid {
+      grid-template-columns: minmax(0, 860px) !important;
+      justify-content: center;
     }
 
     /* RSVP only needs the form. The inline status below the submit button is
@@ -52,6 +85,30 @@
     }
     .field label {
       line-height: 1.4;
+    }
+    .guestbook-image-field input[type="file"] {
+      padding: 10px 12px !important;
+      cursor: pointer;
+    }
+    .guestbook-image-field input[type="file"]::file-selector-button {
+      border: 0;
+      border-radius: 999px;
+      margin-right: 10px;
+      padding: 9px 12px;
+      background: rgba(233,207,147,.16);
+      color: #fff4dc;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .message-photo {
+      display: block;
+      width: 100%;
+      max-height: 520px;
+      object-fit: cover;
+      margin-top: 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(233,207,147,.14);
+      background: rgba(0,0,0,.12);
     }
 
     /* Mobile: keep the portrait composition, but give the ornament more room
