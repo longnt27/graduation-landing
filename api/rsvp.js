@@ -39,11 +39,15 @@ function buildTelegramMessage(row) {
 }
 
 async function sendTelegram(message) {
-  const token = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.TELEGRAM_CHAT_ID;
+  const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
+  const chatId = process.env.TELEGRAM_CHAT_ID?.trim();
 
-  if (!token || !chatId) {
-    throw new Error('Telegram RSVP chưa được cấu hình.');
+  const missing = [];
+  if (!token) missing.push('TELEGRAM_BOT_TOKEN');
+  if (!chatId) missing.push('TELEGRAM_CHAT_ID');
+
+  if (missing.length) {
+    throw new Error(`Telegram RSVP chưa được cấu hình: thiếu ${missing.join(', ')}.`);
   }
 
   const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
