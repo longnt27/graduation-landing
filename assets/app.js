@@ -1,7 +1,8 @@
 // Load the original full-resolution generated artwork. These files are intentionally
 // not committed by ChatGPT because the GitHub connector truncates large binary uploads.
 (() => {
-  const VERSION = 'original-fullres-v2';
+  const VERSION = 'original-fullres-v3';
+  const FULL_MAP_URL = "https://www.google.com/maps/place/21%C2%B000'17.8%22N+105%C2%B050'46.2%22E/@21.004937,105.8455279,19z/data=!3m1!4b1!4m13!1m8!3m7!1s0x3135ab9bd9861ca1:0xe7887f7b72ca17a9!2sHanoi,+Ha+Noi,+Vietnam!3b1!8m2!3d21.0277644!4d105.8341598!16zL20vMGZuZmY!3m3!8m2!3d21.004937!4d105.846173?entry=ttu&g_ep=EgoyMDI2MDkwMi4wIKXMDSoASAFQAw%3D%3D";
   const sources = {
     tablet: `/assets/frame-tablet-original.png?v=${VERSION}`,
     mobile: `/assets/frame-mobile-original.png?v=${VERSION}`,
@@ -16,13 +17,13 @@
   if (mobile) mobile.src = sources.mobile;
   ornaments.forEach(img => { img.src = sources.divider; });
 
-  // Remove the tentative schedule card entirely; only confirmed event details remain.
+  // Older HTML builds contained a tentative schedule card. Keep this as a harmless
+  // compatibility cleanup in case a cached document is still open in a browser.
   const detailsGrid = document.querySelector('#details .info-grid');
   const scheduleCard = detailsGrid?.querySelector('.paper:nth-child(2)');
   if (scheduleCard) scheduleCard.remove();
 
-  // Guestbook may be anonymous. Add one optional image input without making the
-  // base HTML dependent on large binary assets or another framework.
+  // Guestbook may be anonymous. These guards keep older cached HTML compatible.
   const guestbookForm = document.querySelector('#guestbookForm');
   const guestbookName = document.querySelector('#messageName');
   const guestbookNameLabel = document.querySelector('label[for="messageName"]');
@@ -65,8 +66,71 @@
       justify-content: center;
     }
 
+    .map-embed-wrap {
+      margin-top: 20px;
+      overflow: hidden;
+      border-radius: 18px;
+      border: 1px solid rgba(116,64,54,.16);
+      background: #eadfcf;
+      aspect-ratio: 16 / 9;
+      min-height: 240px;
+    }
+    .map-embed {
+      display: block;
+      width: 100%;
+      height: 100%;
+      min-height: 240px;
+      border: 0;
+    }
+
+    /* Normalize selects instead of relying on OS-native popup colors.
+       Windows otherwise tends to combine our light text with a white option menu. */
+    .field select {
+      -webkit-appearance: none !important;
+      -moz-appearance: none !important;
+      appearance: none !important;
+      color-scheme: dark;
+      background-color: #4a0911 !important;
+      color: #fff8ef !important;
+      padding-right: 44px !important;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23e9cf93' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+      background-repeat: no-repeat !important;
+      background-position: right 14px center !important;
+      background-size: 16px 16px !important;
+      cursor: pointer;
+    }
+    .field select:hover {
+      background-color: #560b14 !important;
+      border-color: rgba(233,207,147,.30) !important;
+    }
+    .field select:focus {
+      background-color: #5d0c15 !important;
+      border-color: rgba(233,207,147,.58) !important;
+    }
+    .field select option,
+    .field select optgroup {
+      background: #35050b !important;
+      color: #fff8ef !important;
+    }
+    .field select option:checked {
+      background: #6a101b !important;
+      color: #fffdf7 !important;
+    }
+    .field select option:disabled {
+      color: #bca99d !important;
+    }
+    .field select::-ms-expand {
+      display: none;
+    }
+    @media (forced-colors: active) {
+      .field select {
+        appearance: auto !important;
+        background-image: none !important;
+      }
+    }
+
     /* RSVP only needs the form. The inline status below the submit button is
-       enough feedback, so hide the redundant summary panel and center the form. */
+       enough feedback, so hide the redundant summary panel in older cached HTML. */
     #rsvp .forms-grid {
       grid-template-columns: minmax(0, 860px) !important;
       justify-content: center;
@@ -153,6 +217,10 @@
       .hero-actions .btn {
         padding: 12px 15px !important;
       }
+      .map-embed-wrap,
+      .map-embed {
+        min-height: 220px;
+      }
     }
 
     /* Small tablets (notably iPad Mini portrait): the old >=640px rules used
@@ -226,7 +294,20 @@
   `;
   document.head.appendChild(style);
 
-  import(`/assets/app-core.js?v=${VERSION}`).catch(err => {
-    console.error('Failed to load application logic', err);
-  });
+  import(`/assets/app-core.js?v=${VERSION}`)
+    .then(() => {
+      const mapBtn = document.querySelector('#mapBtn');
+      const detailLocation = document.querySelector('#detailLocation');
+      const heroMeta = document.querySelector('#heroMeta');
+
+      if (mapBtn) {
+        mapBtn.href = FULL_MAP_URL;
+        mapBtn.hidden = false;
+      }
+      if (detailLocation) detailLocation.textContent = '21°00′17.8″N · 105°50′46.2″E';
+      if (heroMeta) heroMeta.textContent = 'Chủ Nhật · Thời gian sẽ cập nhật · Hà Nội';
+    })
+    .catch(err => {
+      console.error('Failed to load application logic', err);
+    });
 })();
