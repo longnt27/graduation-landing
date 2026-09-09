@@ -35,6 +35,50 @@ const CONFIG = {
     el.className = `status show ${type}`;
     el.innerHTML = message;
   }
+  async function prepareGuestbookImage(file){
+    const allowed = ['image/jpeg','image/png','image/webp'];
+    if (!allowed.includes(file.type)) {
+      throw new Error('Ảnh phải là JPEG, PNG hoặc WebP.');
+    }
+    if (file.size > 15 * 1024 * 1024) {
+      throw new Error('Ảnh gốc quá lớn. Vui lòng chọn ảnh dưới 15 MB.');
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    try {
+      const image = await new Promise((resolve,reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error('Không thể đọc ảnh đã chọn.'));
+        img.src = objectUrl;
+      });
+
+      const maxSide = 1400;
+      const scale = Math.min(1, maxSide / Math.max(image.naturalWidth, image.naturalHeight));
+      const width = Math.max(1, Math.round(image.naturalWidth * scale));
+      const height = Math.max(1, Math.round(image.naturalHeight * scale));
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Trình duyệt không thể xử lý ảnh này.');
+      ctx.drawImage(image, 0, 0, width, height);
+
+      let dataUrl = canvas.toDataURL('image/webp', .82);
+      if (!dataUrl.startsWith('data:image/webp')) {
+        dataUrl = canvas.toDataURL('image/jpeg', .82);
+      }
+      if (dataUrl.length > 2_800_000) {
+        dataUrl = canvas.toDataURL('image/webp', .68);
+      }
+      if (dataUrl.length > 2_800_000) {
+        throw new Error('Ảnh sau khi tối ưu vẫn quá lớn. Vui lòng chọn ảnh nhỏ hơn.');
+      }
+      return dataUrl;
+    } finally {
+      URL.revokeObjectURL(objectUrl);
+    }
+  }
   $('#heroMeta').textContent = `${CONFIG.eventDay} · ${CONFIG.time} · ${CONFIG.location}`;
   $('#detailTime').textContent = CONFIG.time;
   $('#detailLocation').textContent = CONFIG.location;
@@ -42,12 +86,15 @@ const CONFIG = {
     $('#mapBtn').href = CONFIG.mapUrl;
     $('#mapBtn').hidden = false;
   }
-  $('#timeline').innerHTML = CONFIG.timeline.map(x => `
-    <div class="timeline-item">
-      <div class="timeline-time">${escapeHtml(x.time)}</div>
-      <div class="timeline-copy"><strong>${escapeHtml(x.title)}</strong><span>${escapeHtml(x.desc)}</span></div>
-    </div>
-  `).join('');
+  const timeline = $('#timeline');
+  if (timeline) {
+    timeline.innerHTML = CONFIG.timeline.map(x => `
+      <div class="timeline-item">
+        <div class="timeline-time">${escapeHtml(x.time)}</div>
+        <div class="timeline-copy"><strong>${escapeHtml(x.title)}</strong><span>${escapeHtml(x.desc)}</span></div>
+      </div>
+    `).join('');
+  }
   function tick(){
     const diff = new Date(CONFIG.eventDate).getTime() - Date.now();
     const safe = Math.max(0,diff);
@@ -118,7 +165,6 @@ const CONFIG = {
         (r.arrival_time ? `Dự kiến có mặt: <strong>${escapeHtml(r.arrival_time)}</strong><br>` : '') +
         `Xác nhận lúc: <strong>${escapeHtml(formatDateTime(r.created_at))}</strong>`
       );
-      renderLatestRsvp(r);
       form.reset();
       syncAttendanceFields();
       showToast('Đã gửi xác nhận tham dự');
@@ -129,21 +175,6 @@ const CONFIG = {
       btn.textContent = 'Gửi xác nhận';
     }
   });
-  function renderLatestRsvp(r){
-    $('#latestRsvp').innerHTML = `
-      <div class="message">
-        <div class="message-head">
-          <div><div class="message-name">${escapeHtml(r.guest_name)}</div></div>
-          <div class="message-time">${escapeHtml(formatDateTime(r.created_at))}</div>
-        </div>
-        <div class="message-body">
-          ${escapeHtml(attendanceLabel(r.attendance))}
-          ${r.arrival_time ? ` · dự kiến ${escapeHtml(r.arrival_time)}` : ''}
-          ${Number(r.companions) > 0 ? ` · đi cùng ${Number(r.companions)} người` : ''}
-        </div>
-      </div>
-    `;
-  }
   async function loadGuestbook(){
     const root = $('#guestbookFeed');
     try{
@@ -158,12 +189,13 @@ const CONFIG = {
         <div class="message">
           <div class="message-head">
             <div>
-              <div class="message-name">${escapeHtml(m.name)}</div>
+              <div class="message-name">${escapeHtml(m.name || 'Ẩn danh')}</div>
               ${m.title ? `<div class="message-title">${escapeHtml(m.title)}</div>` : ''}
             </div>
             <div class="message-time">${escapeHtml(formatDateTime(m.created_at))}</div>
           </div>
           <div class="message-body">${escapeHtml(m.message)}</div>
+          ${m.image_url ? `<img class="message-photo" src="${escapeHtml(m.image_url)}" alt="Ảnh đính kèm trong lưu bút" loading="lazy">` : ''}
         </div>
       `).join('');
     }catch(err){
@@ -175,11 +207,24 @@ const CONFIG = {
     const form = e.currentTarget;
     const status = $('#guestbookStatus');
     if(!form.reportValidity()) return;
-    const payload = Object.fromEntries(new FormData(form).entries());
+
+    const formData = new FormData(form);
+    const payload = {
+      website: formData.get('website') || '',
+      name: formData.get('name') || '',
+      title: formData.get('title') || '',
+      message: formData.get('message') || ''
+    };
+    const imageFile = formData.get('image');
     const btn = $('#guestbookSubmit');
     btn.disabled = true;
-    btn.textContent = 'Đang gửi…';
+
     try{
+      if(imageFile instanceof File && imageFile.size > 0){
+        btn.textContent = 'Đang xử lý ảnh…';
+        payload.image = await prepareGuestbookImage(imageFile);
+      }
+      btn.textContent = 'Đang gửi…';
       const res = await fetch('/api/guestbook',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
@@ -188,7 +233,7 @@ const CONFIG = {
       const data = await res.json();
       if(!res.ok) throw new Error(data.error || 'Không thể gửi lời chúc');
       setStatus(status,
-        `<strong>Đã lưu lời chúc của ${escapeHtml(data.message.name)}.</strong><br>` +
+        `<strong>Đã lưu lời chúc của ${escapeHtml(data.message.name || 'Ẩn danh')}.</strong><br>` +
         `Gửi lúc: <strong>${escapeHtml(formatDateTime(data.message.created_at))}</strong>`
       );
       form.reset();
