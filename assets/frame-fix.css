@@ -1,0 +1,23 @@
+.frame{
+  opacity:1!important;
+  filter:none!important;
+  object-fit:contain!important;
+  object-position:center!important;
+  image-rendering:auto!important;
+  transform:none!important;
+}
+
+.ornament{
+  opacity:1!important;
+  filter:none!important;
+  image-rendering:auto!important;
+}
+
+@media (min-width:1200px){
+  .frame-tablet{
+    width:100%!important;
+    height:100%!important;
+    inset:0!important;
+    object-fit:contain!important;
+  }
+}
