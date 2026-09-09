@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Long graduation icon">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8b0c1c"/>
+      <stop offset="1" stop-color="#51040c"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffe7a0"/>
+      <stop offset="0.5" stop-color="#e4b451"/>
+      <stop offset="1" stop-color="#b97820"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="8" y="8" width="240" height="240" rx="48" fill="url(#bg)"/>
+  <rect x="15" y="15" width="226" height="226" rx="42" fill="none" stroke="url(#gold)" stroke-width="8"/>
+
+  <!-- Large monogram: intentionally thick so it survives 16–32 px rendering. -->
+  <path d="M92 82v91c0 16 9 23 25 23h54" fill="none" stroke="url(#gold)" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Graduation cap: broad geometric strokes, no tiny detail. -->
+  <path d="M61 68 126 42l69 26-69 27Z" fill="url(#gold)"/>
+  <path d="M89 82v26c23 15 51 15 74 0V82" fill="none" stroke="url(#gold)" stroke-width="12" stroke-linecap="round"/>
+  <path d="M193 68v45" fill="none" stroke="url(#gold)" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="193" cy="119" r="8" fill="url(#gold)"/>
+</svg>
