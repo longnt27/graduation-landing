@@ -3,7 +3,7 @@ const CONFIG = {
     eventDay: 'Chủ Nhật',
     time: 'Thời gian sẽ cập nhật',
     location: 'Địa điểm sẽ được cập nhật',
-    mapUrl: '',
+    mapUrl: 'https://maps.app.goo.gl/3xVTwm98D731VokG9',
     timeline: [
       { time:'01', title:'Đón khách', desc:'Gặp nhau và chụp ảnh trước buổi lễ.' },
       { time:'02', title:'Lễ tốt nghiệp', desc:'Cùng em Long tham dự khoảnh khắc chính thức của ngày tốt nghiệp.' },
