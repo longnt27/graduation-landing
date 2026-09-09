@@ -1,26 +1,77 @@
 (() => {
+  const EVENT = {
+    dateTime: '2026-09-27T09:00:00+07:00',
+    time: '09:00 (dự kiến)',
+    location: 'Toà C2, Đại học Bách khoa Hà Nội'
+  };
+  const MAP_URL = 'https://www.google.com/maps/search/?api=1&query=To%C3%A0+C2%2C+%C4%90%E1%BA%A1i+h%E1%BB%8Dc+B%C3%A1ch+khoa+H%C3%A0+N%E1%BB%99i';
+  const MAP_EMBED = 'https://www.google.com/maps?q=To%C3%A0+C2%2C+%C4%90%E1%BA%A1i+h%E1%BB%8Dc+B%C3%A1ch+khoa+H%C3%A0+N%E1%BB%99i&z=18&output=embed';
+
   // Keep the hero to the two intended actions even if an older cached app.js
   // still injects the temporary Messenger CTA into the invitation itself.
   const heroMessenger = document.querySelector('.hero-actions #messengerBtn');
   if (heroMessenger) heroMessenger.remove();
 
+  // custom-ui.js from earlier revisions observes these nodes with the previous
+  // event details. Replacing the nodes detaches that stale observer while keeping
+  // the same IDs for app-core.js and the rest of the page.
+  const eventIds = ['heroMeta', 'detailTime', 'detailLocation', 'days', 'hours', 'minutes', 'seconds'];
+  const eventNodes = {};
+  eventIds.forEach(id => {
+    const oldNode = document.getElementById(id);
+    if (!oldNode) return;
+    const node = oldNode.cloneNode(true);
+    oldNode.replaceWith(node);
+    eventNodes[id] = node;
+  });
+
+  function applyEventDetails() {
+    const meta = `Chủ Nhật · ${EVENT.time} · ${EVENT.location}`;
+    if (eventNodes.heroMeta && eventNodes.heroMeta.textContent !== meta) eventNodes.heroMeta.textContent = meta;
+    if (eventNodes.detailTime && eventNodes.detailTime.textContent !== EVENT.time) eventNodes.detailTime.textContent = EVENT.time;
+    if (eventNodes.detailLocation && eventNodes.detailLocation.textContent !== EVENT.location) eventNodes.detailLocation.textContent = EVENT.location;
+  }
+
+  function tickCountdown() {
+    const safe = Math.max(0, new Date(EVENT.dateTime).getTime() - Date.now());
+    const values = [
+      Math.floor(safe / 86400000),
+      Math.floor((safe % 86400000) / 3600000),
+      Math.floor((safe % 3600000) / 60000),
+      Math.floor((safe % 60000) / 1000)
+    ];
+    ['days', 'hours', 'minutes', 'seconds'].forEach((id, index) => {
+      const node = eventNodes[id];
+      const value = String(values[index]).padStart(2, '0');
+      if (node && node.textContent !== value) node.textContent = value;
+    });
+  }
+
+  applyEventDetails();
+  tickCountdown();
+  setInterval(tickCountdown, 1000);
+
+  const eventObserver = new MutationObserver(() => {
+    applyEventDetails();
+    tickCountdown();
+  });
+  Object.values(eventNodes).forEach(node => {
+    eventObserver.observe(node, { childList: true, characterData: true, subtree: true });
+  });
+
+  const mapBtn = document.getElementById('mapBtn');
+  const mapEmbed = document.querySelector('.map-embed');
+  function applyMap() {
+    if (mapBtn && mapBtn.href !== MAP_URL) mapBtn.href = MAP_URL;
+    if (mapEmbed && mapEmbed.src !== MAP_EMBED) mapEmbed.src = MAP_EMBED;
+  }
+  applyMap();
+  if (mapBtn) {
+    new MutationObserver(applyMap).observe(mapBtn, { attributes: true, attributeFilter: ['href'] });
+  }
+
   const style = document.createElement('style');
   style.textContent = `
-    /* The wheel picker panel lives inside the RSVP card while the original
-       backdrop was appended to <body>. The card creates its own stacking
-       context, so the backdrop could sit above the picker and swallow every
-       tap/scroll. This picker does not need to modalize the whole page: keep
-       the sheet/popover interactive and remove the blocking backdrop. */
-    .wheel-time-backdrop {
-      display: none !important;
-      pointer-events: none !important;
-    }
-    .wheel-time-picker.is-open {
-      z-index: 200 !important;
-    }
-    .wheel-time-panel {
-      pointer-events: auto !important;
-    }
     #rsvp .panel,
     #rsvp .forms-grid {
       overflow: visible !important;
@@ -37,9 +88,6 @@
         padding-top: 4px !important;
       }
 
-      /* Keep Google Maps embedded on phones, just make it compact enough that it
-         does not dominate the viewport. This intentionally overrides the older
-         mobile rule in custom-ui.js that hid the iframe completely. */
       .map-embed-wrap {
         display: block !important;
         width: 100% !important;
