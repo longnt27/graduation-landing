@@ -6,6 +6,26 @@
 
   const style = document.createElement('style');
   style.textContent = `
+    /* The wheel picker panel lives inside the RSVP card while the original
+       backdrop was appended to <body>. The card creates its own stacking
+       context, so the backdrop could sit above the picker and swallow every
+       tap/scroll. This picker does not need to modalize the whole page: keep
+       the sheet/popover interactive and remove the blocking backdrop. */
+    .wheel-time-backdrop {
+      display: none !important;
+      pointer-events: none !important;
+    }
+    .wheel-time-picker.is-open {
+      z-index: 200 !important;
+    }
+    .wheel-time-panel {
+      pointer-events: auto !important;
+    }
+    #rsvp .panel,
+    #rsvp .forms-grid {
+      overflow: visible !important;
+    }
+
     /* Keep the invitation close to the next section on phones/tablets. Desktop
        spacing is intentionally untouched. */
     @media (max-width: 639px) {
