@@ -27,11 +27,9 @@ function buildTelegramMessage(row) {
     '🎓 RSVP MỚI — LỄ TỐT NGHIỆP EM LONG',
     '',
     `👤 Họ tên: ${clean(row.guest_name)}`,
-    `🤝 Mối quan hệ: ${clean(row.guest_relation)}`,
     `📌 Trạng thái: ${ATTENDANCE_LABELS[row.attendance] || clean(row.attendance)}`,
     `🕐 Dự kiến có mặt: ${clean(row.arrival_time, 'Chưa xác định')}`,
     `👥 Đi cùng: ${Number(row.companions || 0)} người`,
-    `📞 Liên hệ: ${clean(row.contact)}`,
     `💌 Lời nhắn: ${clean(row.note)}`,
     '',
     `🗓 Gửi lúc: ${formatVietnamTime(row.created_at)}`,
@@ -82,11 +80,9 @@ export default async function handler(req, res) {
     const row = {
       id: crypto.randomUUID(),
       guest_name: d.guestName,
-      guest_relation: d.guestRelation,
       attendance: d.attendance,
       arrival_time: d.arrivalTime,
       companions: d.companions,
-      contact: d.contact,
       note: d.note,
       created_at: new Date().toISOString()
     };
@@ -99,7 +95,6 @@ export default async function handler(req, res) {
       rsvp: {
         id: row.id,
         guest_name: row.guest_name,
-        guest_relation: row.guest_relation,
         attendance: row.attendance,
         arrival_time: row.arrival_time,
         companions: row.companions,
@@ -107,7 +102,7 @@ export default async function handler(req, res) {
       }
     });
   } catch (err) {
-    if (err?.message?.startsWith('Vui lòng') || err?.message?.startsWith('Số người')) {
+    if (err?.message?.startsWith('Vui lòng') || err?.message?.startsWith('Số người') || err?.message?.startsWith('Giờ dự kiến')) {
       return json(res, 400, { error: err.message });
     }
 
