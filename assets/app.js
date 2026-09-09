@@ -1,7 +1,8 @@
 // Load the original full-resolution generated artwork. These files are intentionally
 // not committed by ChatGPT because the GitHub connector truncates large binary uploads.
 (() => {
-  const VERSION = 'original-fullres-v3';
+  const VERSION = 'original-fullres-v4';
+  const MESSENGER_URL = 'https://m.me/tlng17';
   const FULL_MAP_URL = "https://www.google.com/maps/place/21%C2%B000'17.8%22N+105%C2%B050'46.2%22E/@21.004937,105.8455279,19z/data=!3m1!4b1!4m13!1m8!3m7!1s0x3135ab9bd9861ca1:0xe7887f7b72ca17a9!2sHanoi,+Ha+Noi,+Vietnam!3b1!8m2!3d21.0277644!4d105.8341598!16zL20vMGZuZmY!3m3!8m2!3d21.004937!4d105.846173?entry=ttu&g_ep=EgoyMDI2MDkwMi4wIKXMDSoASAFQAw%3D%3D";
   const sources = {
     tablet: `/assets/frame-tablet-original.png?v=${VERSION}`,
@@ -16,6 +17,23 @@
   if (tablet) tablet.src = sources.tablet;
   if (mobile) mobile.src = sources.mobile;
   ornaments.forEach(img => { img.src = sources.divider; });
+
+  // Add a direct Messenger CTA next to the RSVP CTA. m.me opens Messenger when
+  // available and otherwise falls back to Messenger/Facebook on the web.
+  const heroActions = document.querySelector('.hero-actions');
+  if (heroActions && !document.querySelector('#messengerBtn')) {
+    const messengerBtn = document.createElement('a');
+    messengerBtn.id = 'messengerBtn';
+    messengerBtn.className = 'btn btn-secondary messenger-btn';
+    messengerBtn.href = MESSENGER_URL;
+    messengerBtn.target = '_blank';
+    messengerBtn.rel = 'noopener noreferrer';
+    messengerBtn.textContent = 'Nhắn tin cho em Long';
+
+    const rsvpBtn = heroActions.querySelector('a[href="#rsvp"]');
+    if (rsvpBtn) rsvpBtn.after(messengerBtn);
+    else heroActions.prepend(messengerBtn);
+  }
 
   // Older HTML builds contained a tentative schedule card. Keep this as a harmless
   // compatibility cleanup in case a cached document is still open in a browser.
@@ -83,14 +101,14 @@
       border: 0;
     }
 
-    /* Normalize selects instead of relying on OS-native popup colors.
-       Windows otherwise tends to combine our light text with a white option menu. */
+    /* Native select is now only a fallback; custom-ui.js provides the consistent
+       interactive listbox. Keep the fallback legible if JavaScript is unavailable. */
     .field select {
       -webkit-appearance: none !important;
       -moz-appearance: none !important;
       appearance: none !important;
       color-scheme: dark;
-      background-color: #4a0911 !important;
+      background-color: rgba(255,250,240,.085) !important;
       color: #fff8ef !important;
       padding-right: 44px !important;
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23e9cf93' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
@@ -100,11 +118,11 @@
       cursor: pointer;
     }
     .field select:hover {
-      background-color: #560b14 !important;
+      background-color: rgba(255,250,240,.11) !important;
       border-color: rgba(233,207,147,.30) !important;
     }
     .field select:focus {
-      background-color: #5d0c15 !important;
+      background-color: rgba(255,250,240,.12) !important;
       border-color: rgba(233,207,147,.58) !important;
     }
     .field select option,
@@ -269,8 +287,8 @@
         flex-wrap: nowrap !important;
       }
       .hero-actions .btn {
-        padding: 11px 14px !important;
-        font-size: 12px !important;
+        padding: 11px 12px !important;
+        font-size: 11px !important;
       }
     }
 
@@ -297,6 +315,7 @@
   import(`/assets/app-core.js?v=${VERSION}`)
     .then(() => {
       const mapBtn = document.querySelector('#mapBtn');
+      const detailTime = document.querySelector('#detailTime');
       const detailLocation = document.querySelector('#detailLocation');
       const heroMeta = document.querySelector('#heroMeta');
 
@@ -304,8 +323,9 @@
         mapBtn.href = FULL_MAP_URL;
         mapBtn.hidden = false;
       }
-      if (detailLocation) detailLocation.textContent = '21°00′17.8″N · 105°50′46.2″E';
-      if (heroMeta) heroMeta.textContent = 'Chủ Nhật · Thời gian sẽ cập nhật · Hà Nội';
+      if (detailTime) detailTime.textContent = '08:00';
+      if (detailLocation) detailLocation.textContent = 'Toà B1, Đại học Bách khoa Hà Nội';
+      if (heroMeta) heroMeta.textContent = 'Chủ Nhật · 08:00 · Toà B1, Đại học Bách khoa Hà Nội';
     })
     .catch(err => {
       console.error('Failed to load application logic', err);
