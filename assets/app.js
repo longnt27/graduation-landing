@@ -32,6 +32,16 @@
       image-rendering: auto !important;
     }
 
+    /* RSVP only needs the form. The inline status below the submit button is
+       enough feedback, so hide the redundant summary panel and center the form. */
+    #rsvp .forms-grid {
+      grid-template-columns: minmax(0, 860px) !important;
+      justify-content: center;
+    }
+    #rsvp .forms-grid > .panel + .panel {
+      display: none !important;
+    }
+
     /* Keep each field label visually attached to its own control while giving
        consecutive form rows enough breathing room. */
     form > .field-grid + .field-grid,
