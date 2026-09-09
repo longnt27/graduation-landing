@@ -47,7 +47,7 @@
             <div class="rule"></div>
             <p class="hero-desc">Một cột mốc rất đặc biệt sẽ trọn vẹn hơn nếu có sự hiện diện của những người em quý mến.</p>
             <div class="hero-date">27 · 09 · 2026</div>
-            <div class="hero-meta" id="heroMeta">Chủ Nhật · Thời gian sẽ cập nhật · Địa điểm sẽ được cập nhật</div>
+            <div class="hero-meta" id="heroMeta">Chủ Nhật · Thời gian sẽ cập nhật · Hà Nội</div>
             <div class="hero-actions">
               <a class="btn btn-primary" href="#rsvp">Xác nhận tham dự</a>
               <a class="btn btn-secondary" href="#guestbook">Viết lưu bút</a>
@@ -97,22 +97,27 @@
               </div>
               <div class="detail">
                 <div class="detail-label">Địa điểm</div>
-                <div class="detail-value" id="detailLocation">Địa điểm sẽ được cập nhật</div>
+                <div class="detail-value" id="detailLocation">21°00′17.8″N · 105°50′46.2″E</div>
               </div>
               <div class="detail">
                 <div class="detail-label">Dress code</div>
                 <div class="detail-value">Đỏ · Đen · Kem / Semi-formal</div>
               </div>
             </div>
-            <div class="form-actions" style="margin-top:16px">
-              <a class="btn btn-primary" id="mapBtn" href="#" target="_blank" rel="noopener noreferrer" hidden>Xem bản đồ</a>
-            </div>
-          </article>
 
-          <article class="paper">
-            <h3>Lịch trình dự kiến</h3>
-            <p>Mọi người có thể tới sớm một chút để mình có thêm thời gian gặp nhau và chụp ảnh trước buổi lễ.</p>
-            <div class="timeline" id="timeline"></div>
+            <div class="map-embed-wrap">
+              <iframe
+                class="map-embed"
+                title="Vị trí lễ tốt nghiệp trên Google Maps"
+                src="https://www.google.com/maps?q=21.004937,105.846173&amp;z=18&amp;output=embed"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+                allowfullscreen></iframe>
+            </div>
+
+            <div class="form-actions">
+              <a class="btn btn-primary" id="mapBtn" href="https://www.google.com/maps/place/21%C2%B000'17.8%22N+105%C2%B050'46.2%22E/@21.004937,105.8455279,19z/data=!3m1!4b1!4m13!1m8!3m7!1s0x3135ab9bd9861ca1:0xe7887f7b72ca17a9!2sHanoi,+Ha+Noi,+Vietnam!3b1!8m2!3d21.0277644!4d105.8341598!16zL20vMGZuZmY!3m3!8m2!3d21.004937!4d105.846173?entry=ttu&amp;g_ep=EgoyMDI2MDkwMi4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener noreferrer">Mở trong Google Maps</a>
+            </div>
           </article>
         </div>
       </div>
@@ -195,14 +200,6 @@
               <div class="status" id="rsvpStatus" role="status" aria-live="polite"></div>
             </form>
           </div>
-
-          <div class="panel">
-            <h3 class="panel-title">Đã ghi nhận như thế nào?</h3>
-            <p class="panel-copy">Sau khi gửi thành công, trang sẽ xác nhận lại tên, trạng thái tham dự, giờ dự kiến có mặt và thời điểm phản hồi.</p>
-            <div class="message-feed" id="latestRsvp">
-              <div class="empty">Chưa có xác nhận nào được gửi từ thiết bị này.</div>
-            </div>
-          </div>
         </div>
       </div>
     </section>
@@ -227,8 +224,8 @@
 
               <div class="field-grid two">
                 <div class="field">
-                  <label for="messageName">Tên của bạn *</label>
-                  <input id="messageName" name="name" maxlength="100" placeholder="Tên của bạn" required>
+                  <label for="messageName">Tên của bạn (không bắt buộc)</label>
+                  <input id="messageName" name="name" maxlength="100" placeholder="Để trống nếu muốn ẩn danh">
                 </div>
                 <div class="field">
                   <label for="messageTitle">Tiêu đề nhỏ</label>
@@ -239,6 +236,12 @@
               <div class="field">
                 <label for="messageBody">Lời lưu bút *</label>
                 <textarea id="messageBody" name="message" maxlength="1200" placeholder="Viết đôi dòng cho em Long..." required></textarea>
+              </div>
+
+              <div class="field guestbook-image-field">
+                <label for="messageImage">Ảnh kèm theo (không bắt buộc)</label>
+                <input id="messageImage" name="image" type="file" accept="image/jpeg,image/png,image/webp">
+                <div class="helper">Có thể gửi 1 ảnh. Trang sẽ tự tối ưu ảnh trước khi tải lên.</div>
               </div>
 
               <div class="form-actions">
@@ -269,6 +272,6 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="/assets/app.js" defer></script>
+<script src="/assets/app.js?v=map-select-20260909" defer></script>
 </body>
 </html>
