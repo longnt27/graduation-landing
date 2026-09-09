@@ -1,7 +1,6 @@
 import crypto from 'node:crypto';
 import { json, methodNotAllowed } from '../lib/http.js';
 import { decodeGuestbookImage } from '../lib/guestbook-image.js';
-import { enforceRateLimit } from '../lib/rate-limit.js';
 import { enforceJsonPost } from '../lib/security.js';
 import { readRecent, writePrivateBlob, writeRecord } from '../lib/store.js';
 import { validateGuestbook } from '../lib/validation.js';
@@ -23,12 +22,6 @@ function publicMessage(row) {
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
-    if (!await enforceRateLimit(req, res, {
-      scope: 'guestbook-get',
-      limit: 120,
-      windowSeconds: 60
-    })) return;
-
     try {
       const rows = await readRecent('guestbook', 40);
       const messages = rows
@@ -43,11 +36,6 @@ export default async function handler(req, res) {
 
   if (req.method !== 'POST') return methodNotAllowed(res, ['GET', 'POST']);
   if (!enforceJsonPost(req, res, { maxBytes: 3_100_000 })) return;
-  if (!await enforceRateLimit(req, res, {
-    scope: 'guestbook-post',
-    limit: 10,
-    windowSeconds: 600
-  })) return;
 
   try {
     const validated = validateGuestbook(req.body || {});
