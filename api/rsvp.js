@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import { json, methodNotAllowed } from '../lib/http.js';
+import { enforceJsonPost } from '../lib/security.js';
 import { validateRsvp } from '../lib/validation.js';
 
 const ATTENDANCE_LABELS = {
@@ -71,6 +72,7 @@ async function sendTelegram(message) {
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return methodNotAllowed(res, ['POST']);
+  if (!enforceJsonPost(req, res, { maxBytes: 16_384 })) return;
 
   try {
     const validated = validateRsvp(req.body || {});
