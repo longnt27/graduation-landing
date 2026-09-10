@@ -47,7 +47,7 @@
   const guestbookNameLabel = document.querySelector('label[for="messageName"]');
   if (guestbookName) {
     guestbookName.required = false;
-    guestbookName.placeholder = 'Để trống nếu muốn ẩn danh';
+    guestbookName.placeholder = 'Để trống để ẩn danh';
   }
   if (guestbookNameLabel) guestbookNameLabel.textContent = 'Tên của bạn (không bắt buộc)';
 
