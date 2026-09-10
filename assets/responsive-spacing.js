@@ -4,8 +4,8 @@
     time: '09:00 (dự kiến)',
     location: 'Toà C2, Đại học Bách khoa Hà Nội'
   };
-  const MAP_URL = 'https://www.google.com/maps/search/?api=1&query=To%C3%A0+C2%2C+%C4%90%E1%BA%A1i+h%E1%BB%8Dc+B%C3%A1ch+khoa+H%C3%A0+N%E1%BB%99i';
-  const MAP_EMBED = 'https://www.google.com/maps?q=To%C3%A0+C2%2C+%C4%90%E1%BA%A1i+h%E1%BB%8Dc+B%C3%A1ch+khoa+H%C3%A0+N%E1%BB%99i&z=18&output=embed';
+  const MAP_URL = 'https://www.google.com/maps/search/?api=1&query=21.0064474%2C105.8423066';
+  const MAP_EMBED = 'https://www.google.com/maps?q=21.0064474%2C105.8423066&z=18&output=embed';
 
   // Keep the hero to the two intended actions even if an older cached app.js
   // still injects the temporary Messenger CTA into the invitation itself.
@@ -75,6 +75,25 @@
     #rsvp .panel,
     #rsvp .forms-grid {
       overflow: visible !important;
+    }
+
+    /* Details and RSVP each have one card. Let them span the same desktop
+       container width as the countdown and guestbook instead of keeping the
+       old two-column / 860px constraints. */
+    @media (min-width: 900px) {
+      #details .info-grid,
+      #rsvp .forms-grid {
+        grid-template-columns: minmax(0, 1fr) !important;
+        justify-content: stretch !important;
+      }
+    }
+
+    /* app.css intentionally made the desktop hero wider than every other
+       section. Keep all top-level section edges aligned on large screens. */
+    @media (min-width: 1200px) {
+      .hero .container {
+        width: min(1180px, calc(100% - 36px)) !important;
+      }
     }
 
     /* Keep the invitation close to the next section on phones/tablets. Desktop
