@@ -1,7 +1,7 @@
 (() => {
   const EVENT = {
-    dateTime: '2026-09-27T09:00:00+07:00',
-    time: '09:00 (dự kiến)',
+    dateTime: '2026-09-27T10:00:00+07:00',
+    time: '10:00 (dự kiến)',
     location: 'Toà C2, Đại học Bách khoa Hà Nội'
   };
   const MAP_URL = 'https://www.google.com/maps/search/?api=1&query=21.0064474%2C105.8423066';
