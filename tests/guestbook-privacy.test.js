@@ -2,7 +2,6 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { validateGuestbook } from '../lib/validation.js';
 import {
-  classifyLegacyPrivateMigration,
   isPublicGuestbookRow,
   storagePlanForGuestbook
 } from '../lib/guestbook-policy.js';
@@ -22,9 +21,17 @@ test('guestbook accepts explicit private visibility', () => {
   assert.equal(result.data.isPublic, false);
 });
 
-test('legacy rows without visibility remain public', () => {
-  assert.equal(isPublicGuestbookRow({ approved: true }), true);
+test('ordinary legacy rows without visibility remain public', () => {
+  assert.equal(isPublicGuestbookRow({ approved: true, name: 'Người khác' }), true);
   assert.equal(isPublicGuestbookRow({}), true);
+});
+
+test('legacy Bố mày đây row is hidden without re-migration', () => {
+  assert.equal(isPublicGuestbookRow({ name: 'Bố mày đây' }), false);
+});
+
+test('a future explicit public row with the same display name stays public', () => {
+  assert.equal(isPublicGuestbookRow({ name: 'Bố mày đây', visibility: 'public' }), true);
 });
 
 test('private and unapproved rows are hidden', () => {
@@ -44,31 +51,6 @@ test('public guestbook submissions persist record and image', () => {
     storeRecord: true,
     storeImage: true
   });
-});
-
-test('legacy migration selects exactly one public Bố mày đây row', () => {
-  const target = { id: 'target', name: 'Bố mày đây', visibility: 'public' };
-  const result = classifyLegacyPrivateMigration([
-    { id: 'other', name: 'Người khác' },
-    target
-  ]);
-  assert.deepEqual(result, { state: 'migrate', row: target });
-});
-
-test('legacy migration is idempotent after the row becomes private', () => {
-  const target = { id: 'target', name: 'Bố mày đây', visibility: 'private' };
-  const result = classifyLegacyPrivateMigration([target]);
-  assert.deepEqual(result, { state: 'already-private', row: target });
-});
-
-test('legacy migration refuses ambiguous duplicate names', () => {
-  assert.throws(
-    () => classifyLegacyPrivateMigration([
-      { id: 'a', name: 'Bố mày đây' },
-      { id: 'b', name: 'Bố mày đây' }
-    ]),
-    /expected exactly one/i
-  );
 });
 
 test('guestbook Telegram text labels private/public delivery', () => {
