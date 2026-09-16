@@ -30,39 +30,13 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: Syntax check serverless functions
+      - name: Syntax check application code
         run: |
           node --check api/rsvp.js
           node --check api/guestbook.js
-          node --check api/migrate-guestbook.js
           node --check api/health.js
           node --check lib/store.js
           node --check lib/telegram.js
           node --check lib/guestbook-policy.js
           node --check lib/guestbook-service.js
-
-      - name: Migrate the one legacy private guestbook message
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        shell: bash
-        run: |
-          set -euo pipefail
-          url="https://graduation-landing.vercel.app/api/migrate-guestbook"
-          for attempt in $(seq 1 36); do
-            code=$(curl -sS -o /tmp/guestbook-migration.json -w "%{http_code}" \
-              -X POST \
-              -H "Content-Type: application/json" \
-              --data '{}' \
-              "$url" || true)
-            if [ "$code" = "200" ]; then
-              cat /tmp/guestbook-migration.json
-              exit 0
-            fi
-            if [ "$code" != "404" ] && [ "$code" != "405" ]; then
-              echo "Migration endpoint returned HTTP $code"
-              cat /tmp/guestbook-migration.json || true
-              exit 1
-            fi
-            sleep 5
-          done
-          echo "Timed out waiting for the production migration endpoint"
-          exit 1
+          node --check assets/guestbook-privacy.js
